@@ -3,7 +3,7 @@ import { Search, Filter, User, Briefcase, Shield, ChevronRight, CheckCircle, Sta
 import LoginModal from './LoginModal';
 
 // REPLACE THIS WITH YOUR RENDER URL
-const API_URL = 'https://techxchange-api.onrender.com](https://techxchange-api.onrender.com'; 
+const API_URL = 'https://techxchange-api.onrender.com'; 
 
 const ListingCard = ({ listing }) => (
   <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden group">
