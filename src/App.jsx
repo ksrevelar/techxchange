@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
   User, 
   Briefcase, 
-  MessageCircle, 
   Menu, 
   X, 
   Star, 
@@ -16,30 +15,73 @@ import {
 } from 'lucide-react';
 
 // --- VISUAL IDENTITY CONSTANTS ---
-// Primary: Dark Slate (High contrast dark mode feel)
-// Accent: Vibrant Orange (from screenshots)
-
 const COLORS = {
   primary: '#111827',
-  accent: '#F97316', // Changed to Orange
+  accent: '#F97316', 
   textMain: '#1f2937',
   textSec: '#6b7280',
   bgLight: '#f3f4f6',
 };
 
-import React, { useState, useEffect } from 'react';
-// ... inside the App component function ...
+// --- MOCK DATA ---
+// (Used as fallback if backend is not running)
 
-const [listings, setListings] = useState([]);
+const MOCK_LISTINGS = [
+  {
+    id: 1,
+    title: "AI-Driven Medical Diagnostic Algorithm",
+    type: "Patent (Utility)",
+    price: "150,000",
+    category: "Healthcare",
+    description: "A machine learning model capable of detecting early-stage arrhythmia with 99% accuracy.",
+    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400"
+  },
+  {
+    id: 2,
+    title: "Autonomous Drone Delivery System",
+    type: "Patent Portfolio",
+    price: "2,500,000",
+    category: "Logistics",
+    description: "Comprehensive stack of 5 patents covering urban navigation, charging docks, and payload management.",
+    image: "https://images.unsplash.com/photo-1506947411487-a56738267384?auto=format&fit=crop&q=80&w=400"
+  },
+  {
+    id: 3,
+    title: "Eco-Friendly Biodegradable Packaging",
+    type: "Process Patent",
+    price: "75,000",
+    category: "Manufacturing",
+    description: "Novel chemical process for creating durable packaging from agricultural waste products.",
+    image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=400"
+  }
+];
 
-useEffect(() => {
-  // Fetch data from your backend
-  fetch('http://localhost:5000/api/listings')
-    .then(res => res.json())
-    .then(data => setListings(data))
-    .catch(err => console.error("Error fetching api:", err));
-}, []);
-
+const MOCK_EXPERTS = [
+  {
+    id: 1,
+    name: "Dr. Sarah Chen, J.D.",
+    title: "Senior Patent Attorney",
+    firm: "Global IP Partners",
+    rate: "$350/hr",
+    rating: 4.9,
+    reviews: 124,
+    location: "San Francisco, CA",
+    skills: ["Biotech", "Pharma", "Litigation"],
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200"
+  },
+  {
+    id: 2,
+    name: "James Wilson",
+    title: "IP Valuation Consultant",
+    firm: "Wilson Strategy Group",
+    rate: "$200/hr",
+    rating: 4.8,
+    reviews: 89,
+    location: "New York, NY",
+    skills: ["Valuation", "Licensing", "Strategy"],
+    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200"
+  }
+];
 
 // --- COMPONENTS ---
 
@@ -47,7 +89,7 @@ const Button = ({ children, variant = 'primary', className = '', ...props }) => 
   const baseStyle = "px-6 py-2 rounded-lg font-medium transition-all duration-200";
   const variants = {
     primary: `bg-[#111827] text-white hover:bg-[#030712]`,
-    accent: `bg-[#F97316] text-white hover:bg-[#ea580c]`, // Orange hover
+    accent: `bg-[#F97316] text-white hover:bg-[#ea580c]`,
     outline: `border-2 border-[#111827] text-[#111827] hover:bg-gray-50`,
     ghost: `text-[#1f2937] hover:text-[#F97316]`
   };
@@ -59,28 +101,27 @@ const Button = ({ children, variant = 'primary', className = '', ...props }) => 
   );
 };
 
-const Badge = ({ children }) => (
-  <span className={`px-2 py-1 rounded text-xs font-semibold bg-orange-100 text-[#c2410c]`}>
-    {children}
-  </span>
-);
-
 const ListingCard = ({ listing }) => (
   <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden group">
     <div className="h-48 overflow-hidden relative">
-      <img src={listing.image} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      {/* Fallback image if one isn't provided */}
+      <img 
+        src={listing.image || "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=400"} 
+        alt={listing.title} 
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+      />
       <div className="absolute top-3 left-3">
         <span className="bg-[#F97316] text-white text-xs font-bold px-3 py-1 rounded-full">
-          {listing.type}
+          {listing.ip_type || listing.type || "Patent"}
         </span>
       </div>
     </div>
     <div className="p-5">
-      <div className="text-xs text-[#6b7280] font-semibold uppercase tracking-wider mb-2">{listing.category}</div>
+      <div className="text-xs text-[#6b7280] font-semibold uppercase tracking-wider mb-2">{listing.category || "General"}</div>
       <h3 className="font-bold text-[#1f2937] text-lg leading-tight mb-3 line-clamp-2">{listing.title}</h3>
       <p className="text-[#6b7280] text-sm mb-4 line-clamp-2">{listing.description}</p>
       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <span className="font-bold text-[#111827] text-xl">{listing.price}</span>
+        <span className="font-bold text-[#111827] text-xl">{listing.price ? `$${listing.price}` : "Contact for Price"}</span>
         <button className="text-[#F97316] font-semibold text-sm hover:underline flex items-center">
           View Details <ChevronRight size={16} />
         </button>
@@ -126,7 +167,31 @@ const ExpertCard = ({ expert }) => (
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
-  const [userRole, setUserRole] = useState('client'); // 'client' or 'expert'
+  const [userRole, setUserRole] = useState('client'); 
+  
+  // STATE FOR DATA FROM BACKEND
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // FETCH DATA
+  useEffect(() => {
+    // IMPORTANT: When you deploy to Render backend, change this URL to your Render API URL
+    // e.g., 'https://techxchange-api.onrender.com/api/listings'
+    const API_URL = 'http://localhost:5000/api/listings';
+
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        setListings(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        // Fallback to mock data if backend is not running
+        console.warn("Backend not detected, falling back to mock data.", err);
+        setListings(MOCK_LISTINGS);
+        setLoading(false);
+      });
+  }, []);
 
   const renderHeader = () => (
     <nav className="bg-[#111827] text-white sticky top-0 z-50 shadow-lg">
@@ -164,7 +229,6 @@ export default function App() {
 
   const renderHero = () => (
     <div className="bg-[#111827] pt-16 pb-24 relative overflow-hidden">
-      {/* Abstract Background Decoration */}
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-[#F97316] opacity-10 blur-3xl"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
@@ -195,13 +259,6 @@ export default function App() {
             <Button variant="primary" className="md:w-32">Search</Button>
           </div>
         </div>
-
-        <div className="mt-12 flex justify-center gap-8 text-gray-400 text-sm font-semibold uppercase tracking-widest">
-          <span>Trusted By</span>
-          <span className="text-gray-300">TechMatch Inc</span>
-          <span className="text-gray-300">Global Pharma</span>
-          <span className="text-gray-300">University Labs</span>
-        </div>
       </div>
     </div>
   );
@@ -217,16 +274,20 @@ export default function App() {
           <Button variant="outline" className="flex items-center gap-2 text-sm">
             <Filter size={16} /> Filters
           </Button>
-          <select className="border border-[#111827] rounded-lg px-4 text-[#1f2937] text-sm focus:outline-none">
-            <option>Sort by: Newest</option>
-            <option>Price: Low to High</option>
-          </select>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {MOCK_LISTINGS.map(listing => <ListingCard key={listing.id} listing={listing} />)}
-      </div>
+      {loading ? (
+        <div className="text-center py-12 text-gray-500">Loading listings from backend...</div>
+      ) : listings.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+            No listings found. Make sure your backend is running!
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {listings.map(listing => <ListingCard key={listing.id} listing={listing} />)}
+        </div>
+      )}
     </div>
   );
 
@@ -234,54 +295,8 @@ export default function App() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold text-[#1f2937] mb-4">Find IP Professionals</h2>
-        <p className="text-[#6b7280] max-w-2xl mx-auto">Connect with verified attorneys, patent engineers, and valuation experts to secure your innovation.</p>
+        <p className="text-[#6b7280] max-w-2xl mx-auto">Connect with verified attorneys...</p>
       </div>
-
-      {/* Expert Profile Header Example (Requested in Prompt) */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-16">
-        <div className="bg-[#111827] h-32 relative"></div>
-        <div className="px-8 pb-8">
-          <div className="flex flex-col md:flex-row items-start md:items-end -mt-12 mb-6">
-            <img 
-              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" 
-              alt="Profile" 
-              className="w-32 h-32 rounded-xl border-4 border-white shadow-md z-10"
-            />
-            <div className="md:ml-6 mt-4 md:mt-0 flex-grow">
-              <h1 className="text-2xl font-bold text-[#1f2937]">Michael Ross, Ph.D.</h1>
-              <div className="flex items-center gap-4 text-sm mt-1">
-                <span className="text-[#F97316] font-medium">Biotech Patent Agent</span>
-                <span className="text-gray-400">•</span>
-                <span className="text-[#6b7280] flex items-center gap-1"><MapPin size={14} /> Boston, MA</span>
-              </div>
-            </div>
-            <div className="mt-4 md:mt-0 flex gap-3">
-               <Button variant="outline">Message</Button>
-               <Button variant="accent">Hire Now</Button>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 border-t border-gray-100 pt-6">
-            <div className="col-span-3">
-              <h3 className="font-bold text-[#1f2937] mb-3">About</h3>
-              <p className="text-[#6b7280] leading-relaxed">
-                Specializing in CRIPSR and mRNA technology patents with over 15 years of experience in both USPTO examination and private practice. I help startups navigate complex freedom-to-operate landscapes.
-              </p>
-            </div>
-            <div className="col-span-1 border-l border-gray-100 pl-8">
-              <div className="mb-4">
-                <p className="text-xs text-gray-500 uppercase font-semibold">Hourly Rate</p>
-                <p className="text-xl font-bold text-[#111827]">$450/hr</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 uppercase font-semibold">Success Rate</p>
-                <p className="text-xl font-bold text-[#111827]">98%</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 md:gap-8 gap-4">
         {MOCK_EXPERTS.map(expert => <ExpertCard key={expert.id} expert={expert} />)}
       </div>
@@ -290,89 +305,9 @@ export default function App() {
 
   const renderDashboard = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-[#f8fafc] min-h-screen">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-bold text-[#1f2937]">Dashboard</h2>
-        <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-          <button 
-            onClick={() => setUserRole('client')}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${userRole === 'client' ? 'bg-[#111827] text-white' : 'text-gray-500 hover:text-[#111827]'}`}
-          >
-            Client View
-          </button>
-          <button 
-            onClick={() => setUserRole('expert')}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${userRole === 'expert' ? 'bg-[#111827] text-white' : 'text-gray-500 hover:text-[#111827]'}`}
-          >
-            Professional View
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Sidebar Navigation */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 h-fit">
-          <nav className="space-y-1">
-            {['Overview', 'Messages', 'Settings'].map(item => (
-              <a key={item} href="#" className="block px-4 py-2 text-[#1f2937] hover:bg-gray-50 rounded-lg font-medium">
-                {item}
-              </a>
-            ))}
-            <div className="pt-4 mt-4 border-t border-gray-100">
-               {userRole === 'client' ? (
-                 <>
-                   <a href="#" className="block px-4 py-2 text-[#6b7280] hover:text-[#F97316]">My Listings</a>
-                   <a href="#" className="block px-4 py-2 text-[#6b7280] hover:text-[#F97316]">Hired Experts</a>
-                 </>
-               ) : (
-                 <>
-                   <a href="#" className="block px-4 py-2 text-[#6b7280] hover:text-[#F97316]">Active Bids</a>
-                   <a href="#" className="block px-4 py-2 text-[#6b7280] hover:text-[#F97316]">Profile Analytics</a>
-                 </>
-               )}
-            </div>
-          </nav>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Stats Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-[#F97316]">
-              <p className="text-gray-500 text-sm font-medium">{userRole === 'client' ? 'Active Listings' : 'Profile Views'}</p>
-              <p className="text-2xl font-bold text-[#1f2937] mt-1">{userRole === 'client' ? '3' : '1,240'}</p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-[#111827]">
-              <p className="text-gray-500 text-sm font-medium">{userRole === 'client' ? 'Pending Proposals' : 'Active Jobs'}</p>
-              <p className="text-2xl font-bold text-[#1f2937] mt-1">{userRole === 'client' ? '12' : '4'}</p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
-              <p className="text-gray-500 text-sm font-medium">{userRole === 'client' ? 'Total Spent' : 'Earnings (YTD)'}</p>
-              <p className="text-2xl font-bold text-[#1f2937] mt-1">{userRole === 'client' ? '$4,500' : '$28,400'}</p>
-            </div>
-          </div>
-
-          {/* Activity Feed */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="font-bold text-[#1f2937] mb-4">Recent Activity</h3>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-start pb-4 border-b border-gray-50 last:border-0 last:pb-0">
-                  <div className="bg-blue-50 p-2 rounded-full mr-4">
-                    <FileText size={16} className="text-[#111827]" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-[#1f2937] font-medium">
-                      {userRole === 'client' 
-                        ? 'New proposal received for "Medical Device Patent"' 
-                        : 'Your bid for "Blockchain Validation" was viewed'}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <h2 className="text-2xl font-bold text-[#1f2937] mb-8">Dashboard</h2>
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <p className="text-gray-500">User Dashboard Placeholder</p>
       </div>
     </div>
   );
@@ -380,7 +315,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-[#1f2937]">
       {renderHeader()}
-      
       <main>
         {activeTab === 'home' && (
           <>
@@ -391,52 +325,16 @@ export default function App() {
         {activeTab === 'marketplace' && renderMarketplace()}
         {activeTab === 'experts' && renderExperts()}
         {activeTab === 'dashboard' && renderDashboard()}
-        {/* Placeholder for other tabs */}
         {(activeTab === 'services' || activeTab === 'community') && (
           <div className="flex flex-col items-center justify-center h-96 text-center">
              <div className="bg-white p-8 rounded-2xl shadow-sm max-w-md">
                 <Briefcase size={48} className="text-[#F97316] mx-auto mb-4" />
                 <h2 className="text-2xl font-bold text-[#111827] mb-2">Coming Soon</h2>
-                <p className="text-gray-500 mb-6">The {activeTab} module is currently under development in this prototype.</p>
                 <Button onClick={() => setActiveTab('home')}>Return Home</Button>
              </div>
           </div>
         )}
       </main>
-
-      <footer className="bg-[#111827] text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <div className="flex items-center mb-4">
-              <Shield className="h-6 w-6 text-[#F97316] mr-2" />
-              <span className="font-bold text-lg">TechXchange</span>
-            </div>
-            <p className="text-gray-400 text-sm">
-              Connecting innovators with the professionals they need to protect and monetize their ideas.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-bold mb-4">Platform</h4>
-            <ul className="space-y-2 text-sm text-gray-300">
-              <li><a href="#" className="hover:text-white">Marketplace</a></li>
-              <li><a href="#" className="hover:text-white">Expert Directory</a></li>
-              <li><a href="#" className="hover:text-white">Pricing</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm text-gray-300">
-              <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white">Terms of Service</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold mb-4">Contact</h4>
-            <p className="text-sm text-gray-300">support@techxchange.com</p>
-            <p className="text-sm text-gray-300 mt-2">1-800-PATENT-1</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
