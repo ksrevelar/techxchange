@@ -177,7 +177,7 @@ export default function App() {
   useEffect(() => {
     // IMPORTANT: When you deploy to Render backend, change this URL to your Render API URL
     // e.g., 'https://techxchange-api.onrender.com/api/listings'
-  const API_URL = '[https://techxchange-api.onrender.com/api/listings](https://techxchange-api.onrender.com/api/listings)';
+  const API_URL = 'https://techxchange-api.onrender.com/api/listings';
 
     fetch(API_URL)
       .then(res => res.json())
